@@ -1,0 +1,12 @@
+[
+  {
+    "database": "peak",
+    "name": "mtxs_daily_mv",
+    "create_table_query": "CREATE MATERIALIZED VIEW peak.mtxs_daily_mv TO peak.mtxs_daily AS SELECT mtxs.source AS protocol FROM peak.mtxs"
+  },
+  {
+    "database": "peak",
+    "name": "broken_mv",
+    "create_table_query": "CREATE MATERIALIZED VIEW peak.broken_mv AS SELECT 1"
+  }
+]
