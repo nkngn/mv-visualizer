@@ -53,8 +53,8 @@ def _inject_node_panel(html: str, node_details: dict[str, dict]) -> str:
     <button class="nd-tab" data-pane="errors">Errors</button>
   </div>
   <div id="nd-ddl" class="nd-pane active">Click a node to view DDL.</div>
-  <div id="nd-status" class="nd-pane"></div>
-  <div id="nd-errors" class="nd-pane"></div>
+  <div id="nd-status" class="nd-pane">No log data / log table unavailable.</div>
+  <div id="nd-errors" class="nd-pane">No log data / log table unavailable.</div>
 </div>
 <script>
 const NODE_DETAILS = {payload};
@@ -76,11 +76,19 @@ function renderNodeDetail(nodeId) {{
   const detail = NODE_DETAILS[nodeId] || {{}};
   document.getElementById('nd-title').textContent = nodeId || 'Node Details';
   document.getElementById('nd-ddl').textContent = detail.ddl || 'DDL not available.';
-  document.getElementById('nd-status').textContent = JSON.stringify(detail.status || {{}}, null, 2);
-  document.getElementById('nd-errors').textContent = JSON.stringify({{
-    node_errors: detail.errors || [],
-    global_errors: detail.global_errors || []
-  }}, null, 2);
+  if (detail.status) {{
+    document.getElementById('nd-status').textContent = JSON.stringify(detail.status, null, 2);
+  }} else {{
+    document.getElementById('nd-status').textContent = 'No log data / log table unavailable.';
+  }}
+  if (detail.errors || detail.global_errors) {{
+    document.getElementById('nd-errors').textContent = JSON.stringify({{
+      node_errors: detail.errors || [],
+      global_errors: detail.global_errors || []
+    }}, null, 2);
+  }} else {{
+    document.getElementById('nd-errors').textContent = 'No log data / log table unavailable.';
+  }}
 }}
 
 if (typeof network !== 'undefined') {{
