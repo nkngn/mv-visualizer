@@ -51,9 +51,9 @@ def fetch_node_ddls(client: Any, database: str, node_names: list[str]) -> dict[s
     if not node_names:
         return {}
     sql = (
-        "SELECT concat(database, '.', name) AS full_name, create_table_query "
+        "SELECT concat(database, '.', name), create_table_query "
         "FROM system.tables "
-        "WHERE database = %(db)s AND full_name IN %(node_names)s"
+        "WHERE database = %(db)s AND concat(database, '.', name) IN %(node_names)s"
     )
     result = client.query(sql, parameters={"db": database, "node_names": tuple(node_names)})
     return {row[0]: row[1] for row in result.result_rows}
@@ -151,3 +151,41 @@ def fetch_global_system_errors(client: Any, limit: int) -> list[dict[str, Any]]:
             }
         )
     return out
+
+
+def fetch_node_details(
+    settings: Settings, database: str, node_names: list[str], hours: int, limit: int
+) -> dict[str, dict[str, Any]]:
+    client = clickhouse_connect.get_client(
+        host=settings.host,
+        port=settings.port,
+        username=settings.user,
+        password=settings.password,
+        database=database,
+    )
+    ddls = fetch_node_ddls(client, database, node_names)
+    status_map = fetch_node_status_and_errors(client, database, node_names, hours, limit)
+    global_errors = fetch_global_system_errors(client, limit)
+
+    details: dict[str, dict[str, Any]] = {}
+    for node in node_names:
+        node_status = status_map.get(
+            node,
+            {
+                "status": {
+                    "last_seen": None,
+                    "query_count": 0,
+                    "error_count": 0,
+                    "avg_latency_ms": None,
+                    "state": "unavailable",
+                },
+                "errors": [],
+            },
+        )
+        details[node] = {
+            "ddl": ddls.get(node, ""),
+            "status": node_status["status"],
+            "errors": node_status["errors"],
+            "global_errors": global_errors,
+        }
+    return details
