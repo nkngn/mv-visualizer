@@ -16,6 +16,18 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate ClickHouse MV lineage graph HTML")
     parser.add_argument("--database", required=True, help="ClickHouse database to scan")
     parser.add_argument("--output", required=True, help="Output HTML path")
+    parser.add_argument("--log-hours", type=int, default=24, help="Time window for node logs")
+    parser.add_argument(
+        "--log-limit-per-node",
+        type=int,
+        default=20,
+        help="Maximum status/error log entries per node",
+    )
+    parser.add_argument(
+        "--disable-node-logs",
+        action="store_true",
+        help="Disable node log prefetch and render only lineage graph",
+    )
     return parser.parse_args(argv)
 
 
